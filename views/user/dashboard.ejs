@@ -1,0 +1,33 @@
+<!--views/user/dashboard.ejs-->
+
+<section>
+  <h2>Your Dashboard</h2>
+
+  <% if (!user) { %>
+    <p>Please <a href="/user/login">login</a> to access your dashboard.</p>
+  <% } else { %>
+    <p>Welcome back, <strong><%= user.firstName || user.name || user.email %></strong></p>
+
+    <div class="dashboard-grid">
+      <div class="card">
+        <h3>Your investments</h3>
+        <p><a href="/api/investments">View investments (API)</a></p>
+      </div>
+
+      <div class="card">
+        <h3>Transactions</h3>
+        <p><a href="/api/transactions">View transactions (API)</a></p>
+      </div>
+
+      <div class="card">
+        <h3>Account</h3>
+        <p>Balance: <strong>₦<%= (user.walletBalance || 0).toLocaleString() %></strong></p>
+      </div>
+    </div>
+  <% } %>
+</section>
+
+<style>
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:1rem}
+.card{padding:1rem;background:#fff;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+</style>

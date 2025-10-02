@@ -1,0 +1,21 @@
+<!--views/admin/register.ejs-->
+
+<section>
+  <h2>Admin Register</h2>
+
+  <form method="post" action="/api/admin/register">
+    <label>Full name
+      <input name="name" type="text" required />
+    </label>
+
+    <label>Email
+      <input name="email" type="email" required />
+    </label>
+
+    <label>Password
+      <input name="password" type="password" required minlength="8" />
+    </label>
+
+    <button class="btn" type="submit">Create admin</button>
+  </form>
+</section>

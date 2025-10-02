@@ -1,0 +1,12 @@
+<!--views/index.ejs-->
+
+<section>
+  <h1>Welcome to Chrenis</h1>
+  <p>Investment platform demo — explore projects and start investing.</p>
+
+  <% if (!user) { %>
+    <p><a class="btn" href="/auth/github">Sign in with GitHub</a> or <a href="/user/register">Register</a></p>
+  <% } else { %>
+    <p>Hello <%= user.firstName || user.name || user.email %>. <a href="/user/dashboard">Go to your dashboard</a></p>
+  <% } %>
+</section>

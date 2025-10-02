@@ -1,0 +1,22 @@
+<!--views/user/login.ejs-->
+
+<section>
+  <h2>User Login</h2>
+
+  <form method="post" action="/auth/login" class="form">
+    <label>Email
+      <input name="email" type="email" required />
+    </label>
+
+    <label>Password
+      <input name="password" type="password" required />
+    </label>
+
+    <div>
+      <button class="btn" type="submit">Login</button>
+      <a href="/auth/github" class="btn btn-ghost">Sign in with GitHub</a>
+    </div>
+  </form>
+
+  <p>Don't have an account? <a href="/user/register">Register</a></p>
+</section>

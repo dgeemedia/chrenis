@@ -1,0 +1,12 @@
+<!--views/admin/dashboard.ejs-->
+
+<section>
+  <h2>Admin Dashboard</h2>
+  <p>Welcome, <%= user ? (user.firstName || user.name || user.email) : 'Admin' %>.</p>
+
+  <ul>
+    <li><a href="/api/admin/overview">Overview (API)</a></li>
+    <li><a href="/api/users">Users</a></li>
+    <li><a href="/api/projects">Projects</a></li>
+  </ul>
+</section>

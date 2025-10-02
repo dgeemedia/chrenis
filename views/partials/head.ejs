@@ -1,0 +1,12 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title><%= title ? title + ' — Chrenis' : 'Chrenis' %></title>
+
+<link rel="stylesheet" href="/css/styles.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- include any additional head tags here -->
+<% if (typeof meta !== 'undefined') { %>
+  <% for (const k in meta) { %>
+    <meta name="<%= k %>" content="<%= meta[k] %>">
+  <% } %>
+<% } %>

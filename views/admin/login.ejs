@@ -1,0 +1,17 @@
+<!--views/admin/login.ejs-->
+
+<section>
+  <h2>Admin Login</h2>
+
+  <form method="post" action="/auth/admin/login">
+    <label>Email
+      <input name="email" type="email" required />
+    </label>
+
+    <label>Password
+      <input name="password" type="password" required />
+    </label>
+
+    <button class="btn" type="submit">Login</button>
+  </form>
+</section>
