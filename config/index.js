@@ -1,16 +1,14 @@
+// config/index.js
 require('dotenv').config();
 
 module.exports = {
-  PORT: process.env.PORT || 3000,
+  PORT: process.env.PORT,
   MONGODB_URI: process.env.MONGODB_URI,
-  AUTH0_DOMAIN: process.env.AUTH0_DOMAIN,
-  AUTH0_AUDIENCE: process.env.AUTH0_AUDIENCE,
+  GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+  GITHUB_CALLBACK_URL: process.env.GITHUB_CALLBACK_URL,
   PAYSTACK_SECRET: process.env.PAYSTACK_SECRET,
   FLUTTERWAVE_SECRET: process.env.FLUTTERWAVE_SECRET,
-  SMTP: {
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
+  SESSION_SECRET: process.env.SESSION_SECRET,
+  JWT_SECRET: process.env.JWT_SECRET,
 };

@@ -1,0 +1,39 @@
+<!--views/investments/index.ejs-->
+<section>
+  <h1><%= title %></h1>
+
+  <% if (user) { %>
+    <% if (investments && investments.length) { %>
+      <table class="table">
+        <thead><tr><th>Project</th><th>Amount</th><th>Status</th><th>Added</th></tr></thead>
+        <tbody>
+          <% investments.forEach(inv => { %>
+            <tr>
+              <td><%= inv.project ? inv.project.title : (inv.projectId ? inv.projectId.toString() : '-') %></td>
+              <td>₦<%= (inv.amount || 0).toLocaleString() %></td>
+              <td><%= inv.status %></td>
+              <td><%= new Date(inv.createdAt).toLocaleDateString() %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p class="text-muted">You have no investments yet.</p>
+    <% } %>
+  <% } else { %>
+    <p>To invest, please <a href="/user/login">login</a> or <a href="/auth/github">sign in with GitHub</a>.</p>
+    <% if (projects && projects.length) { %>
+      <h3>Available Projects</h3>
+      <div class="dashboard-grid">
+        <% projects.forEach(p => { %>
+          <div class="card">
+            <h3><%= p.title %></h3>
+            <p><%= (p.description || '').slice(0,150) %></p>
+            <p><strong>Min:</strong> ₦<%= (p.minInvestment || 0).toLocaleString() %></p>
+            <p><a class="btn" href="/projects/<%= p._id %>">View</a></p>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  <% } %>
+</section>

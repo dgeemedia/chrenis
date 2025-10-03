@@ -1,0 +1,1 @@
+{"_id":{"$oid":"64d4f0e0b4c3a1d2e3f45690"},"userId":{"$oid":"64a1f1e0b4c3a1d2e3f45679"},"investmentId":{"$oid":"64c3f0e0b4c3a1d2e3f45680"},"type":"deposit","amount":15000,"status":"pending","provider":"stub","providerRef":"stub-12345","meta":{},"createdAt":{"$date":"2025-09-10T00:00:00Z"}}

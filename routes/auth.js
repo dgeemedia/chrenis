@@ -1,8 +1,11 @@
+// File: routes/auth.js
 const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const dbConn = require('../db/connect');
+const bcrypt = require('bcrypt');
 
 const jwtSign = (user) => {
   if (!user) throw new Error('jwtSign requires a user object');
@@ -16,6 +19,75 @@ const getSwaggerRedirectPage = () => {
   const local = process.env.SWAGGER_LOCAL || `http://localhost:${process.env.PORT || 8083}`;
   return `${local.replace(/\/+$/, '')}/api-docs/oauth2-redirect.html`;
 };
+
+/**
+ * POST /auth/login
+ * - Accepts form or JSON POST with { email, password }
+ * - Verifies password, issues JWT, establishes Passport session.
+ * - If request accepts JSON, returns { token, user }.
+ * - Otherwise redirects to /user/dashboard (browser form flow).
+ */
+router.post('/login', async (req, res, next) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).format({
+      json: () => res.json({ message: 'email and password required' }),
+      html: () => res.redirect('/user/login')
+    });
+
+    // fetch user
+    const db = dbConn.getDb();
+    const user = await db.collection('users').findOne({ email: email.toLowerCase() });
+    if (!user || !user.passwordHash) {
+      return res.status(401).format({
+        json: () => res.json({ message: 'Invalid credentials' }),
+        html: () => res.render('user/login', { title: 'Login', error: 'Invalid credentials' })
+      });
+    }
+
+    // verify password
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) {
+      return res.status(401).format({
+        json: () => res.json({ message: 'Invalid credentials' }),
+        html: () => res.render('user/login', { title: 'Login', error: 'Invalid credentials' })
+      });
+    }
+
+    // create JWT using helper
+    const token = jwtSign(user);
+
+    // sanitize user object for session/response
+    const safeUser = { ...user };
+    delete safeUser.passwordHash;
+
+    // establish passport session for browser flows
+    req.login(safeUser, (err) => {
+      if (err) {
+        console.warn('req.login error:', err);
+        // still return token for API clients
+      }
+
+      // Respond: JSON for API/XHR, redirect for browser form
+      // Use req.xhr or Accept header to decide
+      const wantsJson = req.xhr || (req.headers.accept && req.headers.accept.indexOf('application/json') !== -1);
+
+      if (wantsJson) {
+        return res.json({ token, user: { _id: safeUser._id, email: safeUser.email, name: safeUser.name, role: safeUser.role } });
+      } else {
+        // For browser flows, set a one-time flash message optionally
+        if (req.session) req.session.flash = { success: 'Logged in' };
+        return res.redirect('/user/dashboard');
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ------------------------
+   OAuth GitHub handlers (unchanged)
+   ------------------------ */
 
 router.get('/start-oauth', (req, res, next) => {
   try {

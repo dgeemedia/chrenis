@@ -1,6 +1,7 @@
+<!--views/partials/head.ejs-->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title><%= title ? title + ' — Chrenis' : 'Chrenis' %></title>
+<title><%= (typeof title !== 'undefined' && title) ? title + ' — Chrenis' : 'Chrenis' %></title>
 
 <link rel="stylesheet" href="/css/styles.css" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,3 +11,4 @@
     <meta name="<%= k %>" content="<%= meta[k] %>">
   <% } %>
 <% } %>
+

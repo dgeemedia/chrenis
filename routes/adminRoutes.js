@@ -1,3 +1,4 @@
+// File: routes/adminRoutes.js
 const express = require('express');
 const router = express.Router();
 const role = require('../middlewares/role');

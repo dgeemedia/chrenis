@@ -22,23 +22,3 @@
   </div>
 </nav>
 
-<style>
-/* minimal mobile drawer styles (can move to css file) */
-.mobile-drawer{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;z-index:1000}
-.mobile-drawer .drawer-inner{width:280px;background:#fff;height:100%;padding:1rem}
-.mobile-drawer .drawer-nav{list-style:none;padding:0;margin:1rem 0}
-.mobile-drawer .drawer-nav li{margin:0.5rem 0}
-.mobile-drawer .drawer-close{background:none;border:0;font-size:1.2rem}
-@media (max-width:800px){ .mobile-drawer{display:none} }
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const toggle = document.getElementById('mobile-menu-toggle');
-  const drawer = document.getElementById('mobile-drawer');
-  const closeBtn = document.getElementById('mobile-drawer-close');
-  if (!toggle || !drawer) return;
-  toggle.addEventListener('click', () => { drawer.style.display = 'block'; drawer.setAttribute('aria-hidden','false'); });
-  if (closeBtn) closeBtn.addEventListener('click', () => { drawer.style.display = 'none'; drawer.setAttribute('aria-hidden','true'); });
-});
-</script>

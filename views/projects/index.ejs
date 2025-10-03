@@ -1,0 +1,19 @@
+<!--views/projects/index.ejs-->
+<section>
+  <h1>Projects</h1>
+  <% if (!projects || projects.length === 0) { %>
+    <p class="text-muted">No projects available yet.</p>
+  <% } else { %>
+    <div class="dashboard-grid">
+      <% projects.forEach(p => { %>
+        <div class="card">
+          <h3><%= p.title %></h3>
+          <p class="text-muted"><%= p.slug %></p>
+          <p><%= (p.description || '').slice(0, 180) %></p>
+          <p><strong>Min:</strong> ₦<%= (p.minInvestment || 0).toLocaleString() %> • <strong>ROI:</strong> <%= p.roi4moPercent %>% / 4mo</p>
+          <p><a class="btn" href="/projects/<%= p._id %>">View</a></p>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</section>

@@ -1,0 +1,2 @@
+{"_id": {"$oid":"64a1f0e0b4c3a1d2e3f45678"}, "email":"admin@chrenis.example","passwordHash":"$2b$10$MY02eCn8dELzhbr/9sgNX.i7oTIgB31IMzPRrpzd/HASZw45KcJf6","name":"Admin Ernest","role":"admin","walletBalance":100000,"createdAt":{"$date":"2025-10-01T00:00:00Z"}}
+{"_id": {"$oid":"64a1f1e0b4c3a1d2e3f45679"}, "email":"alice@example.com","passwordHash":"$2b$10$MY02eCn8dELzhbr/9sgNX.i7oTIgB31IMzPRrpzd/HASZw45KcJf6","name":"George Olumah","role":"user","walletBalance":5000,"createdAt":{"$date":"2025-10-01T00:00:00Z"}}
