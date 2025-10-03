@@ -7,6 +7,51 @@ const jwt = require('jsonwebtoken');
 const dbConn = require('../db/connect');
 const bcrypt = require('bcrypt');
 
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: "Log in user (email/password) — returns JWT and sets session"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful — returns token and user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *       400:
+ *         description: Missing email/password
+ *       401:
+ *         description: Invalid credentials
+ */
+
 const jwtSign = (user) => {
   if (!user) throw new Error('jwtSign requires a user object');
   const id = (user._id && typeof user._id.toString === 'function') ? user._id.toString() : (user.id || user._id || String(user));
