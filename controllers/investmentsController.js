@@ -74,3 +74,40 @@ exports.create = async (req, res, next) => {
     res.status(201).json({ investment: inv, transaction: txDoc });
   } catch (err) { next(err); }
 };
+
+exports.update = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) return res.status(400).json({ message: 'Invalid id' });
+
+    const updates = { ...req.body, updatedAt: new Date() };
+    delete updates._id;
+    delete updates.userId; // Prevent changing userId
+    delete updates.projectId; // Prevent changing projectId
+
+    const result = await db.getDb().collection('investments').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: updates },
+      { returnDocument: 'after' }
+    );
+
+    if (!result.value) return res.status(404).json({ message: 'Investment not found' });
+    res.json(result.value);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.remove = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    if (!ObjectId.isValid(id)) return res.status(400).json({ message: 'Invalid id' });
+
+    const result = await db.getDb().collection('investments').deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) return res.status(404).json({ message: 'Investment not found' });
+
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+};

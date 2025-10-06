@@ -5,7 +5,7 @@ const ctrl = require('../controllers/investmentsController');
 const { ensureAuthenticated } = require('../middlewares/auth');
 
 /**
- * @openapi
+ * 
  * /api/investments:
  *   post:
  *     tags:
@@ -52,7 +52,10 @@ const { ensureAuthenticated } = require('../middlewares/auth');
  */
 
 router.get('/', ensureAuthenticated, ctrl.list);
-router.get('/:id', ensureAuthenticated, ctrl.get);
-router.post('/', ensureAuthenticated, ctrl.create);
+router.post('/:id', ensureAuthenticated, ctrl.create);
+router.get('/', ensureAuthenticated, ctrl.get);
+router.put('/:id', ensureAuthenticated, ctrl.get);
+router.delete('/:id', ensureAuthenticated, ctrl.get);
+
 
 module.exports = router;

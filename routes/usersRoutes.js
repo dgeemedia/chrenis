@@ -5,7 +5,7 @@ const ctrl = require('../controllers/usersController');
 const { ensureAuthenticated } = require('../middlewares/auth');
 
 /**
- * @openapi
+ * 
  * /api/users:
  *   get:
  *     tags:
@@ -29,7 +29,6 @@ const { ensureAuthenticated } = require('../middlewares/auth');
  */
 
 /**
- * @openapi
  * /api/users:
  *   post:
  *     tags:

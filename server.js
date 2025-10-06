@@ -18,7 +18,7 @@ const swagger = require('./swagger');
 const db = require('./db/connect');
 
 const app = express();
-const PORT = process.env.PORT || config.PORT || 3000;
+const PORT = process.env.PORT || config.PORT || 5000;
 
 (async () => {
   try {
@@ -71,6 +71,7 @@ const PORT = process.env.PORT || config.PORT || 3000;
       res.locals.meta = (typeof res.locals.meta !== 'undefined') ? res.locals.meta : {};
       next();
     });
+servers: [{ url: 'http://localhost:5000/api' }]
 
     // ---- Mount auth at top-level so /auth/start-oauth and /auth/github work ----
     app.use('/auth', require('./routes/auth'));

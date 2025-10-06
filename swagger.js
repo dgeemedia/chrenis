@@ -1,4 +1,3 @@
-// swagger.js
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -12,7 +11,7 @@ const options = {
       version: '1.0.0',
       description: 'API documentation for the Chrenis investment platform'
     },
-    servers: [{ url: '/api' }],
+    servers: [{ url:  'http://localhost:5000/api' }],
     components: {
       securitySchemes: {
         OAuth2Auth: {
@@ -31,7 +30,7 @@ const options = {
         }
       },
       schemas: {
-        // Generic error response
+        // ———— Error ————
         Error: {
           type: 'object',
           properties: {
@@ -39,7 +38,7 @@ const options = {
           }
         },
 
-        // Auth response returned from /auth/login
+        // ———— Auth ————
         AuthResponse: {
           type: 'object',
           properties: {
@@ -48,7 +47,7 @@ const options = {
           }
         },
 
-        // User model (sanitized)
+        // ———— User ————
         User: {
           type: 'object',
           properties: {
@@ -61,8 +60,6 @@ const options = {
             updatedAt: { type: 'string', format: 'date-time' }
           }
         },
-
-        // Input model to create a user
         UserCreate: {
           type: 'object',
           required: ['email', 'password', 'name'],
@@ -73,7 +70,7 @@ const options = {
           }
         },
 
-        // Project model
+        // ———— Project ————
         Project: {
           type: 'object',
           properties: {
@@ -91,8 +88,6 @@ const options = {
             updatedAt: { type: 'string', format: 'date-time' }
           }
         },
-
-        // Input model to create a project
         ProjectCreate: {
           type: 'object',
           required: ['slug', 'title'],
@@ -108,7 +103,7 @@ const options = {
           }
         },
 
-        // Transaction model
+        // ———— Transaction ————
         Transaction: {
           type: 'object',
           properties: {
@@ -125,7 +120,7 @@ const options = {
           }
         },
 
-        // Investment model
+        // ———— Investment ————
         Investment: {
           type: 'object',
           properties: {
@@ -145,8 +140,6 @@ const options = {
             updatedAt: { type: 'string', format: 'date-time' }
           }
         },
-
-        // Input to create investment
         InvestmentCreate: {
           type: 'object',
           required: ['projectId', 'amount', 'term'],
@@ -154,6 +147,232 @@ const options = {
             projectId: { type: 'string', description: 'MongoDB ObjectId string of the project' },
             amount: { type: 'number', description: 'Amount in NGN' },
             term: { type: 'string', enum: ['4mo','12mo'] }
+          }
+        }
+      }
+    },
+
+    // ———— Paths start here (Users, then Investments) ————
+    paths: {
+      // ——— USERS ———
+      '/users': {
+        get: {
+          summary: 'Get all users',
+          tags: ['Users'],
+          responses: {
+            '200': {
+              description: 'List of users',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/User' }
+                  }
+                }
+              }
+            }
+          }
+        },
+        post: {
+          summary: 'Create a new user',
+          security: [{ bearerAuth: [] }],
+          tags: ['Users'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/UserCreate' }
+              }
+            }
+          },
+          responses: {
+            '201': {
+              description: 'User created successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/User' }
+                }
+              }
+            },
+            '400': { description: 'Bad request' }
+          }
+        }
+      },
+      '/users/{id}': {
+        get: {
+          summary: 'Get a user by ID',
+          tags: ['Users'],
+          parameters: [{
+            in: 'path', name: 'id', required: true, schema: { type: 'string' }
+          }],
+          responses: {
+            '200': {
+              description: 'User found',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/User' }
+                }
+              }
+            },
+            '404': { description: 'User not found' }
+          }
+        },
+        put: {
+          summary: 'Update a user by ID',
+          security: [{ bearerAuth: [] }],
+          tags: ['Users'],
+          parameters: [{
+            in: 'path', name: 'id', required: true, schema: { type: 'string' }
+          }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/UserCreate' }
+              }
+            }
+          },
+          responses: {
+            '200': {
+              description: 'User updated successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/User' }
+                }
+              }
+            },
+            '400': { description: 'Bad request' },
+            '404': { description: 'User not found' }
+          }
+        },
+        delete: {
+          summary: 'Delete a user by ID',
+          security: [{ bearerAuth: [] }],
+          tags: ['Users'],
+          parameters: [{
+            in: 'path', name: 'id', required: true, schema: { type: 'string' }
+          }],
+          responses: {
+            '204': { description: 'User deleted successfully' },
+            '404': { description: 'User not found' }
+          }
+        }
+      },
+
+      // ——— INVESTMENTS ———
+      '/investments': {
+        get: {
+          summary: 'Get all investments',
+          tags: ['Investments'],
+          responses: {
+            '200': {
+              description: 'List of investments',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Investment' }
+                  }
+                }
+              }
+            }
+          }
+        },
+        post: {
+          summary: 'Create a new investment',
+          security: [{ bearerAuth: [] }],
+          tags: ['Investments'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/InvestmentCreate' }
+              }
+            }
+          },
+          responses: {
+            '201': {
+              description: 'Investment created successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Investment' }
+                }
+              }
+            },
+            '400': { description: 'Bad request' }
+          }
+        }
+      },
+      '/investments/{id}': {
+        get: {
+          summary: 'Get an investment by ID',
+          tags: ['Investments'],
+          parameters: [{
+            in: 'path', name: 'id', required: true, schema: { type: 'string' }
+          }],
+          responses: {
+            '200': {
+              description: 'Investment found',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Investment' }
+                }
+              }
+            },
+            '404': { description: 'Investment not found' }
+          }
+        },
+        put: {
+          summary: 'Update an investment by ID',
+          security: [{ bearerAuth: [] }],
+          tags: ['Investments'],
+          parameters: [{
+            in: 'path', name: 'id', required: true, schema: { type: 'string' }
+          }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  allOf: [
+                    { $ref: '#/components/schemas/InvestmentCreate' },
+                    {
+                      type: 'object',
+                      properties: {
+                        status: {
+                          type: 'string',
+                          enum: ['active','matured','withdrawn','reinvested']
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          responses: {
+            '200': {
+              description: 'Investment updated successfully',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Investment' }
+                }
+              }
+            },
+            '400': { description: 'Bad request' },
+            '404': { description: 'Investment not found' }
+          }
+        },
+        delete: {
+          summary: 'Delete an investment by ID',
+          security: [{ bearerAuth: [] }],
+          tags: ['Investments'],
+          parameters: [{
+            in: 'path', name: 'id', required: true, schema: { type: 'string' }
+          }],
+          responses: {
+            '204': { description: 'Investment deleted successfully' },
+            '404': { description: 'Investment not found' }
           }
         }
       }
