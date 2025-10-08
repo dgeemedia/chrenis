@@ -16,3 +16,5 @@ Swagger docs available at `/api-docs`.
 - Member D — Set up Admin routes and email notification service.
 
 (Replace names and add PR links and timestamps when submitting.)
+
+Check scripts/seed.js
