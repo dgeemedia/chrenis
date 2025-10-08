@@ -131,12 +131,15 @@ router.post('/login', async (req, res, next) => {
 });
 
 /* ------------------------
-   OAuth GitHub handlers (unchanged)
+   OAuth GitHub handlers
    ------------------------ */
 
 router.get('/start-oauth', (req, res, next) => {
   try {
-    const state = crypto.randomBytes(32).toString('hex');
+    // Prefer an incoming state (Swagger / other clients may pass one) — fall back to random.
+    const incomingState = req.query && req.query.state;
+    const state = incomingState || crypto.randomBytes(32).toString('hex');
+
     req.session.oauthState = state;
     res.cookie('oauth_state', state, {
       maxAge: 5 * 60 * 1000,
@@ -155,23 +158,21 @@ router.get('/start-oauth', (req, res, next) => {
 
 router.get('/github', (req, res, next) => {
   try {
-    let state = req.session && req.session.oauthState;
-    if (!state) {
-      state = crypto.randomBytes(32).toString('hex');
-      req.session.oauthState = state;
-      res.cookie('oauth_state', state, { maxAge: 5 * 60 * 1000, httpOnly: true, sameSite: 'lax' });
-      req.session.save((err) => {
-        if (err) return res.status(500).send('Error starting OAuth');
-        passport.authenticate('github', { scope: ['user:email'], state })(req, res, next);
-      });
-    } else {
-      res.cookie('oauth_state', state, { maxAge: 5 * 60 * 1000, httpOnly: true, sameSite: 'lax' });
+    const incomingState = req.query && req.query.state;
+    const state = incomingState || (req.session && req.session.oauthState) || crypto.randomBytes(32).toString('hex');
+
+    req.session.oauthState = state;
+    res.cookie('oauth_state', state, { maxAge: 5*60*1000, httpOnly: true, sameSite: 'lax' });
+
+    req.session.save((err) => {
+      if (err) return res.status(500).send('Error starting OAuth');
       passport.authenticate('github', { scope: ['user:email'], state })(req, res, next);
-    }
+    });
   } catch (err) {
     next(err);
   }
 });
+
 
 router.get('/github/callback',
   passport.authenticate('github', { failureRedirect: '/auth/github/failure', session: true }),

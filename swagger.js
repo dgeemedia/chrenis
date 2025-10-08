@@ -12,7 +12,7 @@ const options = {
       version: '1.0.0',
       description: 'API documentation for the Chrenis investment platform'
     },
-    servers: [{ url: '/api' }],
+    servers: [{ url: '/' }],
     components: {
       securitySchemes: {
         OAuth2Auth: {

@@ -1,6 +1,7 @@
 // server.js (full, updated)
 require('dotenv').config();
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const expressLayouts = require('express-ejs-layouts');
 const morgan = require('morgan');
 const helmet = require('helmet');
@@ -35,6 +36,8 @@ const PORT = process.env.PORT || config.PORT || 3000;
     app.use(express.urlencoded({ extended: true }));
     app.use(morgan('dev'));
     app.use(rateLimit({ windowMs: 60_000, max: 120 }));
+
+    app.use(cookieParser());
 
     // views & static
     app.set('views', path.join(__dirname, 'views'));

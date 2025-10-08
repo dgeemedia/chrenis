@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/investmentsController');
 const { ensureAuthenticated } = require('../middlewares/auth');
+const role = require('../middlewares/role');
 
 /**
  * @openapi
@@ -54,5 +55,9 @@ const { ensureAuthenticated } = require('../middlewares/auth');
 router.get('/', ensureAuthenticated, ctrl.list);
 router.get('/:id', ensureAuthenticated, ctrl.get);
 router.post('/', ensureAuthenticated, ctrl.create);
+
+// allow admin or owner to update/delete — here we use admin only for simplicity
+router.put('/:id', ensureAuthenticated, role && typeof role === 'function' ? role('admin') : (req, res, next) => next(), ctrl.update);
+router.delete('/:id', ensureAuthenticated, role && typeof role === 'function' ? role('admin') : (req, res, next) => next(), ctrl.remove);
 
 module.exports = router;
