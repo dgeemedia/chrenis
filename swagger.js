@@ -1,7 +1,22 @@
+// swagger.js
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
-const SWAGGER_HOST = process.env.SWAGGER_LOCAL || `http://localhost:${process.env.PORT || 8083}`;
+const DEFAULT_PORT = process.env.PORT || 8083;
+
+// Priority:
+// 1. SWAGGER_HOST (explicit override)
+// 2. SWAGGER_PROD when NODE_ENV=production
+// 3. SWAGGER_LOCAL when not production
+// 4. fallback to localhost:<PORT>
+const SWAGGER_HOST = (process.env.SWAGGER_HOST)
+  || (process.env.NODE_ENV === 'production' ? process.env.SWAGGER_PROD : process.env.SWAGGER_LOCAL)
+  || `http://localhost:${DEFAULT_PORT}`;
+
+// Ensure there is no trailing slash for building URLs
+const SWAGGER_BASE = SWAGGER_HOST.replace(/\/+$/, '');
+const OAUTH_AUTH_URL = `${SWAGGER_BASE}/auth/start-oauth`;
+const OAUTH_REDIRECT_URL = `${SWAGGER_BASE}/api-docs/oauth2-redirect.html`;
 
 const options = {
   definition: {
@@ -18,7 +33,7 @@ const options = {
           type: 'oauth2',
           flows: {
             implicit: {
-              authorizationUrl: `${SWAGGER_HOST.replace(/\/$/, '')}/auth/start-oauth`,
+              authorizationUrl: OAUTH_AUTH_URL,
               scopes: {}
             }
           }
@@ -385,7 +400,7 @@ const specs = swaggerJsdoc(options);
 
 const swaggerUiOptions = {
   swaggerOptions: {
-    oauth2RedirectUrl: `${SWAGGER_HOST.replace(/\/$/, '')}/api-docs/oauth2-redirect.html`,
+    oauth2RedirectUrl: OAUTH_REDIRECT_URL,
     persistAuthorization: true
   }
 };
