@@ -11,11 +11,7 @@ const options = {
       version: '1.0.0',
       description: 'API documentation for the Chrenis investment platform'
     },
-<<<<<<< HEAD
     servers: [{ url: '/' }],
-=======
-    servers: [{ url:  'http://localhost:5000/api' }],
->>>>>>> feb960b082230f3369e41326b3268f40c6b30638
     components: {
       securitySchemes: {
         OAuth2Auth: {
