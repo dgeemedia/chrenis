@@ -22,6 +22,12 @@ exports.get = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const payload = { ...req.body, createdAt: new Date() };
+    payload.status = payload.status || 'active';
+    if (typeof payload.minInvestment === 'undefined') payload.minInvestment = 10000;
+    if (typeof payload.roi4moPercent === 'undefined') payload.roi4moPercent = 12;
+    if (typeof payload.roi12moPercent === 'undefined') payload.roi12moPercent = 35;
+    if (typeof payload.durationMonths === 'undefined') payload.durationMonths = 4;
+
     const result = await db.getDb().collection('projects').insertOne(payload);
     const p = await db.getDb().collection('projects').findOne({ _id: result.insertedId });
     res.status(201).json(p);
