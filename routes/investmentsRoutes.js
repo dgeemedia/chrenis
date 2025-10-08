@@ -53,11 +53,8 @@ const role = require('../middlewares/role');
  */
 
 router.get('/', ensureAuthenticated, ctrl.list);
-router.post('/:id', ensureAuthenticated, ctrl.create);
-router.get('/', ensureAuthenticated, ctrl.get);
-router.put('/:id', ensureAuthenticated, ctrl.get);
-router.delete('/:id', ensureAuthenticated, ctrl.get);
-
+router.get('/:id', ensureAuthenticated, ctrl.get);
+router.post('/', ensureAuthenticated, ctrl.create);
 
 // allow admin or owner to update/delete — here we use admin only for simplicity
 router.put('/:id', ensureAuthenticated, role && typeof role === 'function' ? role('admin') : (req, res, next) => next(), ctrl.update);

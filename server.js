@@ -19,7 +19,11 @@ const swagger = require('./swagger');
 const db = require('./db/connect');
 
 const app = express();
-const PORT = process.env.PORT || config.PORT || 5000;
+
+// Trust the first proxy (Render, Heroku, etc.) so req.protocol and secure cookies work correctly
+app.set('trust proxy', 1);
+
+const PORT = process.env.PORT || config.PORT || 8083;
 
 (async () => {
   try {
@@ -51,14 +55,18 @@ const PORT = process.env.PORT || config.PORT || 5000;
 
     // sessions
     app.use(session({
-      secret: process.env.SESSION_SECRET || 'replace_this_secret',
+      secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
       store: MongoStore.create({
         mongoUrl: process.env.MONGODB_URI || config.MONGODB_URI,
         collectionName: 'sessions'
       }),
-      cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 } // 7 days
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        secure: process.env.NODE_ENV === 'production', // require HTTPS in production
+        sameSite: 'lax'
+      }
     }));
 
     // passport
@@ -74,7 +82,6 @@ const PORT = process.env.PORT || config.PORT || 5000;
       res.locals.meta = (typeof res.locals.meta !== 'undefined') ? res.locals.meta : {};
       next();
     });
-servers: [{ url: 'http://localhost:5000/api' }]
 
     // ---- Mount auth at top-level so /auth/start-oauth and /auth/github work ----
     app.use('/auth', require('./routes/auth'));
@@ -87,10 +94,6 @@ servers: [{ url: 'http://localhost:5000/api' }]
 
     // Swagger UI (docs)
     app.use('/api-docs', swagger.serve, swagger.setup);
-
-    // legacy simple view routes (optional — UI routes handle these)
-    // app.get('/', (req, res) => res.render('index'));
-    // app.get('/user/dashboard', (req, res) => res.render('user/dashboard'));
 
     // health
     app.get('/health', (req, res) => res.json({ status: 'ok' }));
