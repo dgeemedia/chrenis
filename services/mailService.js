@@ -9,5 +9,10 @@ const transporter = nodemailer.createTransport({
 });
 
 exports.send = async ({ to, subject, text, html }) => {
-  await transporter.sendMail({ from: 'no-reply@chrenis.example', to, subject, text, html });
+  try {
+    await transporter.sendMail({ from: 'no-reply@chrenis.example', to, subject, text, html });
+  } catch (err) {
+    console.error('Mail send error:', err);
+    throw err;
+  }
 };
