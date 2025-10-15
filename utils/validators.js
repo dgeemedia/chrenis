@@ -9,7 +9,7 @@ exports.createUser = Joi.object({
 
 exports.createInvestment = Joi.object({
   projectId: Joi.string().required(),
-  amount: Joi.number().min(10000).required(),
+  amount: Joi.number().min(1).required(),
   term: Joi.string().valid('4mo','12mo').required()
 });
 

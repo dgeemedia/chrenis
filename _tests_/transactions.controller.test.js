@@ -1,4 +1,4 @@
-// __tests__/transactions.controller.test.js
+// File: __tests__/transactions.controller.test.js
 const transactionsController = require('../controllers/transactionsController');
 const db = require('../db/connect');
 const { ObjectId } = require('mongodb');
@@ -17,23 +17,25 @@ describe('transactionsController.create', () => {
     next = jest.fn();
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   test('creates transaction for owner', async () => {
     const investments = {
-      findOne: jest.fn().mockResolvedValue({ _id: invId, userId: req.user._id })
+      findOne: jest.fn().mockResolvedValue({ _id: invId, userId: req.user._id }),
+      updateOne: jest.fn().mockResolvedValue({})
     };
     const transactions = {
       insertOne: jest.fn().mockResolvedValue({ insertedId: new ObjectId() }),
       findOne: jest.fn().mockResolvedValue({ _id: new ObjectId(), amount: 10000 })
     };
-    const investmentsUpdate = {
-      updateOne: jest.fn().mockResolvedValue({})
-    };
 
     db.getDb.mockReturnValue({
       collection: (name) => {
-        if (name === 'investments') return { findOne: investments.findOne, updateOne: investmentsUpdate.updateOne };
-        if (name === 'transactions') return { insertOne: transactions.insertOne, findOne: transactions.findOne };
-        return { find: jest.fn().mockReturnValue({ toArray: () => [] }) };
+        if (name === 'investments') return investments;
+        if (name === 'transactions') return transactions;
+        return { find: jest.fn().mockReturnValue({ toArray: async () => [] }) };
       }
     });
 
@@ -41,7 +43,9 @@ describe('transactionsController.create', () => {
 
     expect(investments.findOne).toHaveBeenCalled();
     expect(transactions.insertOne).toHaveBeenCalled();
-    expect(investmentsUpdate.updateOne).toHaveBeenCalled();
+    const txInserted = transactions.insertOne.mock.calls[0][0];
+    expect(txInserted).toMatchObject({ type: 'deposit', amount: 10000 });
+    expect(investments.updateOne).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(expect.any(Object));
   });
@@ -49,9 +53,8 @@ describe('transactionsController.create', () => {
   test('forbids create by non-owner', async () => {
     const investments = { findOne: jest.fn().mockResolvedValue({ _id: invId, userId: new ObjectId() }) }; // different owner
     db.getDb.mockReturnValue({ collection: (name) => investments });
+
     await transactionsController.create(req, res, next);
-    // Should return 403
-    // We expect controller to call res.status(403).json(...)
     expect(res.status).toHaveBeenCalledWith(403);
   });
 });

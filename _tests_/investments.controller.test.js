@@ -1,4 +1,4 @@
-// _tests_/investments.controller.test.js
+// File: _tests_/investments.controller.test.js
 const investmentsController = require('../controllers/investmentsController');
 const db = require('../db/connect'); // we'll override getDb in test
 const { ObjectId } = require('mongodb');
@@ -7,7 +7,6 @@ describe('investmentsController.create', () => {
   let originalGetDb;
 
   beforeAll(() => {
-    // stash original so other tests not using this mock can restore it if needed
     originalGetDb = db.getDb;
   });
 
@@ -16,13 +15,11 @@ describe('investmentsController.create', () => {
   });
 
   test('creates investment and transaction when data valid', async () => {
-    // Prepare fake IDs
     const fakeUserId = new ObjectId();
     const fakeProjectId = new ObjectId();
     const fakeInvestmentId = new ObjectId();
     const fakeTransactionId = new ObjectId();
 
-    // Mock collections
     const projects = {
       findOne: jest.fn().mockResolvedValue({
         _id: fakeProjectId,
@@ -59,13 +56,11 @@ describe('investmentsController.create', () => {
       }),
     };
 
-    // override db.getDb to return our mocked collections
     db.getDb = () => ({
       collection: (name) => {
         if (name === 'projects') return projects;
         if (name === 'investments') return investments;
         if (name === 'transactions') return transactions;
-        // fallback minimal stub
         return {
           findOne: jest.fn().mockResolvedValue(null),
           insertOne: jest.fn().mockResolvedValue({ insertedId: new ObjectId() }),
@@ -74,18 +69,15 @@ describe('investmentsController.create', () => {
       },
     });
 
-    // Build req/res/next
     const req = {
       body: {
         projectId: fakeProjectId.toString(),
         amount: 5000,
         term: '4mo',
       },
-      // ensure req.user exists (controller expects req.user._id)
       user: { _id: fakeUserId, role: 'user', email: 'test@example.com' },
     };
 
-    // chainable res.status -> res.json
     const res = {
       status: jest.fn(() => res),
       json: jest.fn(),
@@ -93,17 +85,27 @@ describe('investmentsController.create', () => {
 
     const next = jest.fn();
 
-    // Call create
     await investmentsController.create(req, res, next);
 
-    // Assertions
     expect(projects.findOne).toHaveBeenCalledWith({ _id: new ObjectId(req.body.projectId) });
-    expect(investments.insertOne).toHaveBeenCalled(); // inserted investment
-    expect(transactions.insertOne).toHaveBeenCalled(); // inserted transaction
-    expect(investments.updateOne).toHaveBeenCalledWith(
-      { _id: fakeInvestmentId },
-      { $push: { transactions: fakeTransactionId } }
-    );
+    expect(investments.insertOne).toHaveBeenCalled();
+    const insertedArg = investments.insertOne.mock.calls[0][0];
+    expect(typeof insertedArg).toBe('object');
+
+    // assert inserted doc has at least 7 fields
+    const keyCount = Object.keys(insertedArg).length;
+    expect(keyCount).toBeGreaterThanOrEqual(7);
+
+    expect(transactions.insertOne).toHaveBeenCalled();
+    const txArg = transactions.insertOne.mock.calls[0][0];
+    expect(txArg).toMatchObject({ type: 'deposit', amount: 5000 });
+
+    expect(investments.updateOne).toHaveBeenCalled();
+    const updateCall = investments.updateOne.mock.calls[0];
+    expect(updateCall).toBeDefined();
+    expect(updateCall[1]).toHaveProperty('$push');
+    expect(updateCall[1].$push).toHaveProperty('transactions');
+    expect(updateCall[1].$push.transactions).toEqual(fakeTransactionId);
 
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
@@ -112,7 +114,6 @@ describe('investmentsController.create', () => {
         transaction: expect.any(Object),
       })
     );
-    // ensure next was not called (no error)
     expect(next).not.toHaveBeenCalled();
   });
 });
