@@ -1,11 +1,13 @@
-// controllers/investmentsController.js
+// File: controllers/investmentsController.js
 const { ObjectId } = require('mongodb');
 const db = require('../db/connect');
 
+// helper (keeps local behavior)
 const toObjectIdIfValid = (val) => {
-  if (!val) return val;
-  // ObjectId.isValid accepts both string and ObjectId objects
-  return ObjectId.isValid(val) ? new ObjectId(val) : val;
+  if (val === undefined || val === null) return val;
+  if (val instanceof ObjectId) return val;
+  if (typeof val === 'string' && ObjectId.isValid(val)) return new ObjectId(val);
+  return val;
 };
 
 const toIdString = (val) => {
@@ -17,9 +19,7 @@ exports.list = async (req, res, next) => {
   try {
     let filter = {};
     if (!(req.user && req.user.role === 'admin')) {
-      // non-admin: restrict to their investments
       if (!req.user || !req.user._id) {
-        // no user -> empty list
         return res.json([]);
       }
       filter = { userId: toObjectIdIfValid(req.user._id) };
@@ -54,46 +54,72 @@ exports.get = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const { projectId, amount, term } = req.body;
-    if (!projectId || !ObjectId.isValid(projectId)) return res.status(400).json({ message: 'Invalid projectId' });
+    const { projectId, amount, term, paymentRef, currency } = req.body;
 
+    // Basic validation (controller-level)
+    if (!projectId || !ObjectId.isValid(projectId)) return res.status(400).json({ message: 'Invalid projectId' });
+    const amountNum = Number(amount || 0);
+    if (!amountNum || isNaN(amountNum) || amountNum <= 0) return res.status(400).json({ message: 'Invalid amount' });
+    if (!['4mo', '12mo'].includes(term)) return res.status(400).json({ message: 'Invalid term (allowed: 4mo, 12mo)' });
+
+    // fetch project
     const project = await db.getDb().collection('projects').findOne({ _id: new ObjectId(projectId) });
     if (!project) return res.status(404).json({ message: 'Project not found' });
-    if (amount < project.minInvestment) return res.status(400).json({ message: 'Amount below minimum' });
 
-    const roiPercent = term === '12mo' ? project.roi12moPercent : project.roi4moPercent;
-    const expectedPayout = amount + (amount * roiPercent / 100);
-    const maturityDate = new Date();
+    // project-level minInvestment enforcement
+    if (typeof project.minInvestment === 'number' && amountNum < project.minInvestment) {
+      return res.status(400).json({ message: 'Amount below minimum' });
+    }
+
+    // compute roi and dates
+    const roiPercent = term === '12mo' ? (project.roi12moPercent || 35) : (project.roi4moPercent || 12);
+    const expectedPayout = amountNum + (amountNum * roiPercent / 100);
+    const startDate = new Date();
+    const maturityDate = new Date(startDate);
     maturityDate.setMonth(maturityDate.getMonth() + (term === '12mo' ? 12 : 4));
+    const now = new Date();
 
     const invDoc = {
       userId: toObjectIdIfValid(req.user && req.user._id),
       projectId: new ObjectId(projectId),
-      amount,
+      amount: amountNum,
+      currency: currency || project.currency || 'NGN',
+      startDate,
+      maturityDate,
       roiPercent,
       expectedPayout,
-      maturityDate,
-      currency: project.currency || 'NGN',
       status: 'active',
-      createdAt: new Date()
+      paymentRef: paymentRef || null,
+      transactions: [],
+      createdAt: now,
+      updatedAt: now
     };
 
     const invRes = await db.getDb().collection('investments').insertOne(invDoc);
-    const inv = await db.getDb().collection('investments').findOne({ _id: invRes.insertedId });
+    // fetch the inserted investment (controller's previous behavior)
+    const insertedInv = await db.getDb().collection('investments').findOne({ _id: invRes.insertedId });
 
     const txDoc = {
-      userId: inv.userId,
-      investmentId: inv._id,
+      userId: toObjectIdIfValid(req.user && req.user._id),
+      investmentId: insertedInv._id,
       type: 'deposit',
-      amount,
+      amount: amountNum,
       status: 'pending',
-      createdAt: new Date()
+      provider: req.body.provider || null,
+      providerRef: req.body.providerRef || null,
+      meta: req.body.meta || null,
+      createdAt: now
     };
+
     const txRes = await db.getDb().collection('transactions').insertOne(txDoc);
 
-    await db.getDb().collection('investments').updateOne({ _id: inv._id }, { $push: { transactions: txRes.insertedId } });
+    // push transaction id onto investment.transactions array (if you track them)
+    await db.getDb().collection('investments').updateOne(
+      { _id: insertedInv._id },
+      { $push: { transactions: txRes.insertedId } }
+    );
 
-    res.status(201).json({ investment: inv, transaction: txDoc });
+    res.status(201).json({ investment: insertedInv, transaction: txDoc });
   } catch (err) { next(err); }
 };
 
@@ -102,14 +128,11 @@ exports.update = async (req, res, next) => {
     const id = req.params.id;
     if (!ObjectId.isValid(id)) return res.status(400).json({ message: 'Invalid id' });
 
-    // find existing investment
     const inv = await db.getDb().collection('investments').findOne({ _id: new ObjectId(id) });
     if (!inv) return res.status(404).json({ message: 'Not found' });
 
-    // require authenticated user
     if (!req.user || !req.user._id) return res.status(401).json({ message: 'Unauthorized' });
 
-    // allow if admin or owner
     const requesterId = toIdString(req.user._id);
     const ownerId = inv.userId ? toIdString(inv.userId) : null;
     if ((req.user.role !== 'admin') && (!ownerId || ownerId !== requesterId)) {

@@ -137,33 +137,35 @@ const options = {
 
         // ———— Investment ————
         Investment: {
-          type: 'object',
-          properties: {
-            _id: { type: 'string' },
-            userId: { type: 'string' },
-            projectId: { type: 'string' },
-            amount: { type: 'number' },
-            currency: { type: 'string', example: 'NGN' },
-            startDate: { type: 'string', format: 'date-time' },
-            maturityDate: { type: 'string', format: 'date-time' },
-            roiPercent: { type: 'number' },
-            expectedPayout: { type: 'number' },
-            status: { type: 'string', enum: ['active','matured','withdrawn','reinvested'] },
-            paymentRef: { type: 'string' },
-            transactions: { type: 'array', items: { type: 'string' } },
-            createdAt: { type: 'string', format: 'date-time' },
-            updatedAt: { type: 'string', format: 'date-time' }
-          }
-        },
+  type: 'object',
+  required: ['userId','projectId','amount','currency','maturityDate','status','createdAt'],
+  properties: {
+    _id: { type: 'string' },
+    userId: { type: 'string' },
+    projectId: { type: 'string' },
+    amount: { type: 'number' },
+    currency: { type: 'string', example: 'NGN' },
+    startDate: { type: 'string', format: 'date-time' },
+    maturityDate: { type: 'string', format: 'date-time' },
+    roiPercent: { type: 'number' },
+    expectedPayout: { type: 'number' },
+    status: { type: 'string', enum: ['active','matured','withdrawn','reinvested'] },
+    paymentRef: { type: 'string' },
+    transactions: { type: 'array', items: { type: 'string' } },
+    createdAt: { type: 'string', format: 'date-time' },
+    updatedAt: { type: 'string', format: 'date-time' }
+  }
+},
         InvestmentCreate: {
-          type: 'object',
-          required: ['projectId', 'amount', 'term'],
-          properties: {
-            projectId: { type: 'string', description: 'MongoDB ObjectId string of the project' },
-            amount: { type: 'number', description: 'Amount in NGN' },
-            term: { type: 'string', enum: ['4mo','12mo'] }
-          }
-        }
+  type: 'object',
+  required: ['projectId', 'amount', 'term'],
+  properties: {
+    projectId: { type: 'string', description: 'MongoDB ObjectId string of the project' },
+    amount: { type: 'number', minimum: 1, description: 'Amount in NGN (controller enforces project.minInvestment)' },
+    term: { type: 'string', enum: ['4mo','12mo'] }
+  }
+}
+
       }
     },
 
